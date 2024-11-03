@@ -1,0 +1,53 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title Level 3 - Development View.
+
+package weatherservice {
+    package controller {
+        package web {
+        }
+    }
+    package ddd {
+    }
+    package domain {
+        package meteo_reading {
+        }
+    }
+    package mapper {
+    }
+    package persistence {
+        package datamodel {
+        }
+        package springdata {
+        }
+    }
+    package service {
+    }
+    package utils {
+    }
+}
+
+note "Represents the following packages: \n* instant_temperature; \n* instant_wind; \n* max_wind_over_period; \n* sunrise_or_sunset." as N2
+meteo_reading .. N2
+
+note "Mappers and DTOs." as N3
+mapper .. N3
+
+web ...> service
+web ...> mapper
+
+service ...> meteo_reading
+service ...> springdata
+
+meteo_reading ...> utils
+
+mapper ...> meteo_reading
+
+springdata ...> ddd
+springdata .> datamodel
+meteo_reading ...> ddd
+
+datamodel ...> meteo_reading
+
+@enduml

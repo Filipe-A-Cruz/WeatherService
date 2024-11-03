@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant "<<system>>\n:WeatherService" as WS
+
+autoactivate on
+autonumber
+
+title Level 1 - Process View. \nUse Case: Instantaneous temperature reading.
+
+SH -> WS : GET /InstantTemperature?apiKey=apiKeyValue\n&latitude=latitudeValue&longitude=longitudeValue&hour=hourValue
+activate SH
+
+return {"measurement" : measurement, "unit" : unit, "info" : info,\n "links" : links}
+deactivate SH
+
+@enduml

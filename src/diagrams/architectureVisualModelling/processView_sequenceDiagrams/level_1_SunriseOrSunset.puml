@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant "<<system>>\n:WeatherService" as WS
+
+autoactivate on
+autonumber
+
+title Level 1 - Process View. \nUse Case: Sunrise or sunset time reading.
+
+SH -> WS : GET /SunriseOrSunset?apiKey=apiKeyValue\n&latitude=latitudeValue&longitude=longitudeValue&option=optionValue
+activate SH
+
+return {"measurement" : measurement, "unit" : unit, "info" : option,\n "links" : links}
+deactivate SH
+
+@enduml

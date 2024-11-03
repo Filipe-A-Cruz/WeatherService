@@ -1,0 +1,130 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title Level 4 - Development View. \nUse Case: Sunrise or sunset time reading.
+
+package controller {
+    package web {
+        object "WebControllerSunriseOrSunset" as Controller {
+        + getSunriseOrSunset(apiKey : int, latitude : double,\n longitude : double, option : String) : ValueWSDto
+        - <<static>> linkBuilder(valueWSDto : ValueWSDto) : ValueWSDto
+        }
+    }
+}
+
+package service {
+    object "ServiceSunriseOrSunset" as Service {
+    + getSunriseOrSunset(apiKey : int, latitude : double,\n longitude : double, option : String) : ValueWSDto
+    }
+
+    object "FactorySunriseOrSunset" as Factory {
+    + createSunriseOrSunset(apiKey : int, latitude : double,\n longitude : double, option : String) : AggregateRoot
+    }
+}
+
+package domain {
+    package sunrise_or_sunset {
+        package "<<Aggregate>> SunriseOrSunset" {
+            object "<<Root>> SunriseOrSunset" as Root {
+            + <<constructor>> SunriseOrSunset(apiKey : int,\n latitude : double, longitude : double, option : String)
+            - <<static>> isInvalidArguments\n(latitude : double, longitude : double) : boolean
+            + getId() : DomainId
+            + getValueWS() : ValueWS
+            }
+
+            object "<<VO>> ValueWSSunriseOrSunset" as ValueWS {
+            - measurement : double
+            - unit : String
+            - info : String
+            + <<constructor>> ValueWSSunriseOrSunset(option : String)
+            - <<static>> isInvalidArguments(option : String) : boolean
+            - <<static>> measurementLookup\n(databankSunriseAndSunset: DatabankSunriseAndSunset, option : String) : double
+            + getMeasurement() : double
+            + getUnit() : String
+            + getInfo() : String
+            }
+
+            object "<<VO>> IdSunriseOrSunset" as Id {
+            - apiKey : int
+            + <<constructor>> IdSunriseOrSunset(apiKey : int)
+            - <<static>> isInvalidArguments(apiKey : int) : boolean
+            + apiKey() : int
+            }
+        }
+    }
+}
+
+package mapper {
+    object "ValueWSMapper" as ValueMapper {
+    + valueWSToDto(valueWS : ValueWS) : ValueWSDto
+    }
+
+    object "<<VO>> ValueWSDto" as ValueDto {
+    - measurement : double
+    - unit : String
+    - info : String
+    + <<constructor>> ValueDto\n(measurement : double, unit : String, info : String)
+    + getMeasurement() : double
+    + getUnit() : String
+    + getInfo() : String
+    }
+}
+
+package utils {
+    object "DatabankSunriseAndSunset" as DatabankSunriseAndSunset {
+    - sunriseAndSunsetTable : double[]
+    + <<constructor>> DatabankSunriseAndSunset()
+    - <<static>> tableBuilder() : double[]
+    + getSunriseOrSunsetData(option : String) : double
+    }
+
+    object "<<static>> Functions" as Functions {
+    + <<static>> importSunriseAndSunset() : double[]
+    - <<static>> readTextFile(path : Path) : String[]
+    - <<static>> stringToDouble(strings : String[]) : double[]
+    }
+}
+
+package persistence {
+    package datamodel {
+        object "SunriseOrSunsetDataModel" as DataModel {
+        - idSunriseOrSunsetApiKey : int
+        - valueWSSunriseOrSunsetMeasurement : double
+        - valueWSSunriseOrSunsetUnit : String
+        - valueWSSunriseOrSunsetInfo : String
+        + <<constructor>> SunriseOrSunsetDataModel\n(sunriseOrSunset : AggregateRoot)
+        }
+    }
+
+    package springdata {
+        object "RepositoryInstantTemperatureSpringData" as RepositorySpringData {
+        + save(sunriseOrSunset : AggregateRoot) : boolean
+        }
+    }
+}
+
+Controller "1" *---> "1" Service
+Service "1" *--> "1" Factory
+
+Service ...> Root
+
+Controller "1" *---> "1" ValueMapper
+ValueMapper ..> ValueWS
+ValueMapper ..> ValueDto
+
+Factory ...> Root
+
+Root "1" *---> "1" Id
+Root "1" *--> "1" ValueWS
+
+ValueWS ...> DatabankSunriseAndSunset
+DatabankSunriseAndSunset ..> Functions
+
+RepositorySpringData ..> DataModel
+DataModel ...> Root
+DataModel ...> Id
+DataModel ...> ValueWS
+
+Service "1" *---> "1" RepositorySpringData
+
+@enduml

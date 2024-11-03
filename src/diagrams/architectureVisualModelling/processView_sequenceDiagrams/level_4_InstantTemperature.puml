@@ -1,0 +1,115 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant ":ApiInstantTemperature" as API
+participant ":WebControllerInstantTemperature" as Controller
+participant ":ServiceInstantTemperature" as Service
+participant ":FactoryInstantTemperature" as Factory
+participant ":RepositoryInstantTemperatureSpringData" as Repository
+participant ":InstantTemperature" as Root
+participant ":IdInstantTemperature" as Id
+participant ":ValueWSInstantTemperature" as Vo
+participant ":DatabankTemperature" as DatabankTemperature
+participant "<<static>> Functions" as Functions
+
+autoactivate on
+autonumber
+
+title Level 4 - Process View. \nUse Case: Instantaneous temperature reading.
+
+SH -> API : GET /InstantTemperature\n?apiKey=apiKeyValue&latitude=latitudeValue\n&longitude=longitudeValue&hour=hourValue
+activate SH
+
+API -> Controller : getInstantTemperature\n(apiKey, latitude, longitude, hour)
+
+Controller -> Service : getInstantTemperature\n(apiKey, latitude, longitude, hour)
+
+Service -> Factory : createInstantTemperature\n(apiKey, latitude, longitude, hour)
+
+Factory -> Root ** : <<create>> InstantTemperature\n(apiKey, latitude, longitude, hour)
+activate Root
+
+Root -> Functions : <<static>> isInvalidGpsCoordinates\n(latitude, longitude)
+return false
+
+Root -> Id ** : <<create>> IdInstantTemperature\n(apiKey)
+activate Id
+Id -> Id : <<static>> isInvalidArguments\n(apiKey)
+note right
+apiKey must be an integer
+within parameterized boundaries.
+end note
+return false
+return idInstantTemperature
+
+Root -> Vo ** : <<create>> \nValueWSInstantTemperature(hour)
+activate Vo
+Vo -> Vo : <<static>> \nisInvalidArguments(hour)
+note right
+hour must be an integer
+within parameterized boundaries,
+usually between 0 and 23, inclusive.
+end note
+return false
+
+Vo -> DatabankTemperature ** : <<create>>\nDatabankTemperature()
+activate DatabankTemperature
+DatabankTemperature -> DatabankTemperature : <<static>> \ntableBuilder()
+
+DatabankTemperature -> Functions : <<static>> \nimportTemperature()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+Functions -> Functions : <<static>> \nstringToDouble(strings)
+return doubles
+return doubles
+
+return temperatureTable
+DatabankTemperature --> Vo : databankTemperature
+
+Vo -> Vo : <<static>> measurementLookup\n(databankTemperature, hour)
+
+Vo -> DatabankTemperature : getTemperatureData(hour)
+DatabankTemperature --> Vo : measurement
+destroy DatabankTemperature
+
+return measurement
+
+return valueWSInstantTemperature
+
+Root --> Factory : instantTemperature
+Factory --> Service : instantTemperature
+Service -> Repository : save(instantTemperature)
+note left
+If the apiKey is already
+assigned, the aggregate stored
+in the repository is replaced.
+end note
+
+Repository -> Repository : domainToDataModel\n(instantTemperature)
+note right
+This step is simplified.
+end note
+return instantTemperatureDataModel
+
+Repository --> Service : true
+
+Service -> Root : getValueWS()
+return valueWSInstantTemperature
+
+Service --> Controller : valueWSInstantTemperature
+
+Controller -> Controller : domainToDto\n(valueWSInstantTemperature)
+note right
+This step is simplified.
+end note
+return valueWSInstantTemperatureDto
+
+Controller -> Controller : <<static>> linkBuilder\n(valueWSInstantTemperatureDto)
+return valueWSInstantTemperatureDto
+
+Controller --> API : valueWSInstantTemperatureDto
+API --> SH  : {"measurement" : measurement, "unit" : unit,\n "info" : info, "links" : links}
+deactivate SH
+
+@enduml

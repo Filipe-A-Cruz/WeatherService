@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant "<<system>>\n:WeatherService" as WS
+
+autoactivate on
+autonumber
+
+title Level 1 - Process View. \nUse Case: Maximum wind speed and direction reading, over a period.
+
+SH -> WS : GET /MaxWindOverPeriod?apiKey=apiKeyValue&latitude=latitudeValue\n&longitude=longitudeValue&hourStart=hourStartValue&hourEnd=hourEndValue
+activate SH
+
+return {"measurement" : maxMeasurement, "unit" : unit, "info" : concatenatedInfo,\n "links" : links}
+deactivate SH
+
+@enduml

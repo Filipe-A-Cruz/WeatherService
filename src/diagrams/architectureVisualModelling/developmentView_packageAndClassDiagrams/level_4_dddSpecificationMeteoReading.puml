@@ -1,0 +1,81 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title Level 4 - Development View. \nAbbreviated class diagram showing the implementation of \ninterfaces, for a generic meteorological data reading use case.
+
+package persistence {
+    package springdata {
+        object "RepositoryMeteorologicalReadingSpringData" as RepositoryMeteorologicalReadingSpringData {
+        + save(meteorologicalReading : AggregateRoot) : boolean
+        }
+    }
+}
+
+package service {
+    object "FactoryMeteorologicalReading" as FactoryMeteorologicalReading {
+    + createMeteorologicalReading(args) : AggregateRoot
+    }
+
+    object "<<interface>> IFactoryMeteorologicalReading" as dddFactory {
+    + createMeteorologicalReading(args) : AggregateRoot
+    }
+}
+
+package domain {
+    package meteo_reading {
+        package "<<Aggregate>> MeteorologicalReading" {
+            object "<<Root>> MeteorologicalReading" as MeteorologicalReading {
+            + getId() : DomainId
+            + getValueWS() : ValueWS
+            }
+
+            object "<<VO>> ValueWSMeteorologicalReading" as ValueWSMeteorologicalReading {
+            - measurement : double
+            - unit : String
+            - info : String
+            }
+
+            object "<<VO>> IdMeteorologicalReading" as IdMeteorologicalReading {
+            - apiKey : int
+            }
+        }
+    }
+}
+
+package ddd {
+    object "<<interface>> AggregateRoot" as dddAggregateRoot {
+    + getId() : DomainId
+    + getValueWS() : ValueWS
+    }
+
+    object "<<interface>> DomainId" as dddDomainId {
+    + apiKey() : int
+    }
+
+    object "<<interface>> IRepository" as dddRepository {
+    + save(aggregateRoot : AggregateRoot) : boolean
+    }
+
+    object "<<interface>> ValueWS" as dddValueWS {
+    + getMeasurement() : double
+    + getUnit() : String
+    + getInfo() : String
+    }
+}
+
+MeteorologicalReading "1" *--> "1" IdMeteorologicalReading
+MeteorologicalReading "1" *--> "1" ValueWSMeteorologicalReading
+MeteorologicalReading ...|> dddAggregateRoot
+
+IdMeteorologicalReading ...|> dddDomainId
+
+ValueWSMeteorologicalReading ...|> dddValueWS
+
+RepositoryMeteorologicalReadingSpringData ...> MeteorologicalReading
+RepositoryMeteorologicalReadingSpringData ...|> dddRepository
+
+FactoryMeteorologicalReading ..|> dddFactory
+FactoryMeteorologicalReading ...> MeteorologicalReading
+
+
+@enduml

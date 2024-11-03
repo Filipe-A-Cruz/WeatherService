@@ -1,0 +1,141 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title Level 4 - Development View. \nUse Case: Maximum wind speed and direction reading, over a period.
+
+package controller {
+    package web {
+        object "WebControllerMaxWindOverPeriod" as Controller {
+        + getMaxWindOverPeriod(apiKey : int, latitude : double,\n longitude : double, hourStart : int, hourEnd : int) : ValueWSDto
+        - <<static>> linkBuilder(valueWSDto : ValueWSDto) : ValueWSDto
+        }
+    }
+}
+
+package service {
+    object "ServiceMaxWindOverPeriod" as Service {
+    + getMaxWindOverPeriod(apiKey : int, latitude : double,\n longitude : double, hourStart : int, hourEnd : int) : ValueWSDto
+    }
+
+    object "FactoryMaxWindOverPeriod" as Factory {
+    + createMaxWindOverPeriod(apiKey : int, latitude : double,\n longitude : double, hourStart : int, hourEnd : int) : AggregateRoot
+    }
+}
+
+package domain {
+    package max_wind_over_period {
+        package "<<Aggregate>> MaxWindOverPeriod" {
+            object "<<Root>> MaxWindOverPeriod" as Root {
+            + <<constructor>> MaxWindOverPeriod(apiKey : int, latitude : double,\n longitude : double, hourStart : int, hourEnd : int)
+            - <<static>> isInvalidArguments\n(latitude : double, longitude : double) : boolean
+            + getId() : DomainId
+            + getValueWS() : ValueWS
+            }
+
+            object "<<VO>> ValueWSMaxWindOverPeriod" as ValueWS {
+            - measurement : double
+            - unit : String
+            - info : String
+            + <<constructor>> ValueWSMaxWindOverPeriod(hourStart : int, hourEnd : int)
+            - <<static>> isInvalidArguments(hourStart : int, hourEnd : int) : boolean
+            - <<static>> measurementLookup(databankWindSpeed : DatabankWindSpeed,\n hourStart : int, hourEnd : int) : double
+            - <<static>> infoLookup(databankWindSpeed: DatabankWindSpeed, databankWindDirection : DatabankWindDirection,\n hourStart : int, hourEnd : int, maxMeasurement : double) : String
+            + getMeasurement() : double
+            + getUnit() : String
+            + getInfo() : String
+            }
+
+            object "<<VO>> IdMaxWindOverPeriod" as Id {
+            - apiKey : int
+            + <<constructor>> IdMaxWindOverPeriod(apiKey : int)
+            - <<static>> isInvalidArguments(apiKey : int) : boolean
+            + apiKey() : int
+            }
+        }
+    }
+}
+
+package mapper {
+    object "ValueWSMapper" as ValueMapper {
+    + valueWSToDto(valueWS : ValueWS) : ValueWSDto
+    }
+
+    object "<<VO>> ValueWSDto" as ValueDto {
+    - measurement : double
+    - unit : String
+    - info : String
+    + <<constructor>> ValueDto\n(measurement : double, unit : String, info : String)
+    + getMeasurement() : double
+    + getUnit() : String
+    + getInfo() : String
+    }
+}
+
+package utils {
+    object "DatabankWindSpeed" as DatabankWindSpeed {
+    - windSpeedTable : double[]
+    + <<constructor>> DatabankWindSpeed()
+    - <<static>> tableBuilder() : double[]
+    + getWindSpeedData(hour : int) : double
+    }
+
+    object "DatabankWindDirection" as DatabankWindDirection {
+    - windDirectionTable : String[]
+    + <<constructor>> DatabankWindDirection()
+    - <<static>> tableBuilder() : String[]
+    + getWindDirectionData(hour : int) : String
+    }
+
+    object "<<static>> Functions" as Functions {
+    + <<static>> importWindSpeed() : double[]
+    + <<static>> importWindDirection() : double[]
+    - <<static>> readTextFile(path : Path) : String[]
+    - <<static>> stringToDouble(strings : String[]) : double[]
+    }
+}
+
+package persistence {
+    package datamodel {
+        object "MaxWindOverPeriodDataModel" as DataModel {
+        - idMaxWindOverPeriodApiKey : int
+        - valueWSMaxWindOverPeriodMeasurement : double
+        - valueWSMaxWindOverPeriodUnit : String
+        - valueWSMaxWindOverPeriodInfo : String
+        + <<constructor>> MaxWindOverPeriodDataModel\n(maxWindOverPeriod : AggregateRoot)
+        }
+    }
+
+    package springdata {
+        object "RepositoryMaxWindOverPeriodSpringData" as RepositorySpringData {
+        + save(maxWindOverPeriod : AggregateRoot) : boolean
+        }
+    }
+}
+
+Controller "1" *---> "1" Service
+Service "1" *--> "1" Factory
+
+Service ...> Root
+
+Controller "1" *---> "1" ValueMapper
+ValueMapper ..> ValueWS
+ValueMapper ..> ValueDto
+
+Factory ...> Root
+
+Root "1" *---> "1" Id
+Root "1" *--> "1" ValueWS
+
+ValueWS ...> DatabankWindSpeed
+DatabankWindSpeed ..> Functions
+ValueWS ...> DatabankWindDirection
+DatabankWindDirection ..> Functions
+
+RepositorySpringData ..> DataModel
+DataModel ...> Root
+DataModel ...> Id
+DataModel ...> ValueWS
+
+Service "1" *---> "1" RepositorySpringData
+
+@enduml

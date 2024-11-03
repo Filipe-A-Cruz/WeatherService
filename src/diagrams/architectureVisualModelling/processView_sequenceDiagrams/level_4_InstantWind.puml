@@ -1,0 +1,138 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant ":ApiInstantWind" as API
+participant ":WebControllerInstantWind" as Controller
+participant ":ServiceInstantWind" as Service
+participant ":FactoryInstantWind" as Factory
+participant ":RepositoryInstantWindSpringData" as Repository
+participant ":InstantWind" as Root
+participant ":IdInstantWind" as Id
+participant ":ValueWSInstantWind" as Vo
+participant ":DatabankWindSpeed" as DatabankWindSpeed
+participant ":DatabankWindDirection" as DatabankWindDirection
+participant "<<static>> Functions" as Functions
+
+autoactivate on
+autonumber
+
+title Level 4 - Process View. \nUse Case: Instantaneous wind speed and direction reading.
+
+SH -> API : GET /InstantWind\n?apiKey=apiKeyValue&latitude=latitudeValue\n&longitude=longitudeValue&hour=hourValue
+activate SH
+
+API -> Controller : getInstantWind\n(apiKey, latitude, longitude, hour)
+
+Controller -> Service : getInstantWind\n(apiKey, latitude, longitude, hour)
+
+Service -> Factory : createInstantWind\n(apiKey, latitude, longitude, hour)
+
+Factory -> Root ** : <<create>> InstantWind\n(apiKey, latitude, longitude, hour)
+activate Root
+
+Root -> Functions : <<static>> isInvalidGpsCoordinates\n(latitude, longitude)
+return false
+
+Root -> Id ** : <<create>> IdInstantWind\n(apiKey)
+activate Id
+Id -> Id : <<static>> isInvalidArguments\n(apiKey)
+note right
+apiKey must be an integer
+within parameterized boundaries.
+end note
+return false
+return idInstantWind
+
+Root -> Vo ** : <<create>>\n ValueWSInstantWind(hour)
+activate Vo
+Vo -> Vo : <<static>> \nisInvalidArguments(hour)
+note right
+hour must be an integer
+within parameterized boundaries,
+usually between 0 and 23, inclusive.
+end note
+return false
+
+Vo -> DatabankWindSpeed ** : <<create>>\nDatabankWindSpeed()
+activate DatabankWindSpeed
+DatabankWindSpeed -> DatabankWindSpeed : <<static>> \ntableBuilder()
+
+DatabankWindSpeed -> Functions : <<static>> \nimportWindSpeed()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+Functions -> Functions : <<static>> \nstringToDouble(strings)
+return doubles
+return doubles
+
+return windSpeedTable
+DatabankWindSpeed --> Vo : databankWindSpeed
+
+Vo -> Vo : <<static>> measurementLookup\n(databankWindSpeed, hour)
+
+Vo -> DatabankWindSpeed : getWindSpeedData(hour)
+DatabankWindSpeed --> Vo : measurement
+destroy DatabankWindSpeed
+
+return measurement
+
+Vo -> DatabankWindDirection ** : <<create>>\nDatabankWindDirection()
+activate DatabankWindDirection
+DatabankWindDirection -> DatabankWindDirection : <<static>> \ntableBuilder()
+
+DatabankWindDirection -> Functions : <<static>> \nimportWindDirection()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+return strings
+
+return windDirectionTable
+DatabankWindDirection --> Vo : databankWindDirection
+
+Vo -> Vo : <<static>> infoLookup\n(databankWindDirection, hour)
+
+Vo -> DatabankWindDirection : getWindDirectionData(hour)
+DatabankWindDirection --> Vo : info
+destroy DatabankWindDirection
+
+return info
+
+return valueWSInstantWind
+
+
+Root --> Factory : instantWind
+Factory --> Service : instantWind
+Service -> Repository : save(instantWind)
+note left
+If the apiKey is already
+assigned, the aggregate stored
+in the repository is replaced.
+end note
+
+Repository -> Repository : domainToDataModel\n(instantWind)
+note right
+This step is simplified.
+end note
+return instantWindDataModel
+
+Repository --> Service : true
+
+Service -> Root : getValueWS()
+return valueWSInstantWind
+
+Service --> Controller : valueWSInstantWind
+
+Controller -> Controller : domainToDto\n(valueWSInstantWind)
+note right
+This step is simplified.
+end note
+return valueWSInstantWindDto
+
+Controller -> Controller : <<static>> linkBuilder\n(valueWSInstantWindDto)
+return valueWSInstantWindDto
+
+return valueWSInstantWindDto
+
+return {"measurement" : measurement, "unit" : unit,\n "info" : info, "links" : links}
+deactivate SH
+
+@enduml

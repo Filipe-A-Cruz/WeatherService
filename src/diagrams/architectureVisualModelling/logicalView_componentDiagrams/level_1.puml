@@ -1,0 +1,20 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+title Level 1 - Logical View.
+
+component "<<system>>\n:WeatherService" as WeatherService {
+    portin " " as WSRestApiPort
+    portout " " as FilesystemApiPort
+    portout " " as DatabaseApiPort
+}
+
+interface "WeatherService REST API" as WSRestApi
+interface "File system API" as FilesystemApi
+interface "Database API" as DatabaseApi
+
+WSRestApi -- WSRestApiPort
+FilesystemApiPort --( FilesystemApi
+DatabaseApiPort --( DatabaseApi
+
+@enduml

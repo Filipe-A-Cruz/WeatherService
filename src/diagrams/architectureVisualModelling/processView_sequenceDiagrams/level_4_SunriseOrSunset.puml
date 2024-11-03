@@ -1,0 +1,115 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant ":ApiSunriseOrSunset" as API
+participant ":WebControllerSunriseOrSunset" as Controller
+participant ":ServiceSunriseOrSunset" as Service
+participant ":FactorySunriseOrSunset" as Factory
+participant ":RepositorySunriseOrSunsetSpringData" as Repository
+participant ":SunriseOrSunset" as Root
+participant ":IdSunriseOrSunset" as Id
+participant ":ValueWSSunriseOrSunset" as Vo
+participant ":DatabankSunriseAndSunset" as DatabankSunriseAndSunset
+participant "<<static>> Functions" as Functions
+
+autoactivate on
+autonumber
+
+title Level 4 - Process View. \nUse Case: Sunrise or sunset time reading.
+
+SH -> API : GET /SunriseOrSunset\n?apiKey=apiKeyValue&latitude=latitudeValue\n&longitude=longitudeValue&option=optionValue
+activate SH
+
+API -> Controller : getSunriseOrSunset\n(apiKey, latitude, longitude, option)
+
+Controller -> Service : getSunriseOrSunset\n(apiKey, latitude, longitude, option)
+
+Service -> Factory : createSunriseOrSunset\n(apiKey, latitude, longitude, option)
+
+Factory -> Root ** : <<create>> SunriseOrSunset\n(apiKey, latitude, longitude, option)
+activate Root
+
+Root -> Functions : <<static>> isInvalidGpsCoordinates\n(latitude, longitude)
+return false
+
+Root -> Id ** : <<create>> IdSunriseOrSunset\n(apiKey)
+activate Id
+Id -> Id : <<static>> isInvalidArguments\n(apiKey)
+note right
+apiKey must be an integer
+within parameterized boundaries.
+end note
+return false
+return idSunriseOrSunset
+
+Root -> Vo ** : <<create>> \nValueWSSunriseOrSunset(option)
+activate Vo
+Vo -> Vo : <<static>> \nisInvalidArguments(option)
+note right
+option must be either
+"sunrise" or "sunset".
+end note
+return false
+
+Vo -> DatabankSunriseAndSunset ** : <<create>>\nDatabankSunriseAndSunset()
+activate DatabankSunriseAndSunset
+DatabankSunriseAndSunset -> DatabankSunriseAndSunset : <<static>> \ntableBuilder()
+
+DatabankSunriseAndSunset -> Functions : <<static>> \nimportSunriseAndSunset()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+Functions -> Functions : <<static>> \nstringToDouble(strings)
+return doubles
+return doubles
+
+return sunriseAndSunsetTable
+DatabankSunriseAndSunset --> Vo : databankSunriseAndSunset
+
+Vo -> Vo : <<static>> measurementLookup\n(databankSunriseAndSunset, option)
+
+Vo -> DatabankSunriseAndSunset : getSunriseOrSunsetData(option)
+DatabankSunriseAndSunset --> Vo : measurement
+destroy DatabankSunriseAndSunset
+
+return measurement
+
+return valueWSSunriseOrSunset
+
+Root --> Factory : sunriseOrSunset
+Factory --> Service : sunriseOrSunset
+Service -> Repository : save(sunriseOrSunset)
+note left
+If the apiKey is already
+assigned, the aggregate stored
+in the repository is replaced.
+end note
+
+Repository -> Repository : domainToDataModel\n(sunriseOrSunset)
+note right
+This step is simplified.
+end note
+return sunriseOrSunsetDataModel
+
+Repository --> Service : true
+
+Service -> Root : getValueWS()
+return valueWSSunriseOrSunset
+
+Service --> Controller : valueWSSunriseOrSunset
+
+Controller -> Controller : domainToDto\n(valueWSSunriseOrSunset)
+note right
+This step is simplified.
+end note
+return valueWSSunriseOrSunsetDto
+
+Controller -> Controller : <<static>> linkBuilder\n(valueWSSunriseOrSunsetDto)
+return valueWSSunriseOrSunsetDto
+
+return valueWSSunriseOrSunsetDto
+
+return {"measurement" : measurement, "unit" : unit,\n "info" : option, "links" : links}
+deactivate SH
+
+@enduml

@@ -1,0 +1,32 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+object InstantTemperature {
+<<PK>> idInstantTemperatureApiKey : int
+valueWSInstantTemperatureMeasurement : double
+valueWSInstantTemperatureUnit : String
+valueWSInstantTemperatureInfo : String
+}
+
+object InstantWind {
+<<PK>> idInstantWindApiKey : int
+valueWSInstantWindMeasurement : double
+valueWSInstantWindUnit : String
+valueWSInstantWindInfo : String
+}
+
+object MaxWindOverPeriod {
+<<PK>> idMaxWindOverPeriodApiKey : int
+valueWSMaxWindOverPeriodMeasurement : double
+valueWSMaxWindOverPeriodUnit : String
+valueWSMaxWindOverPeriodInfo : String
+}
+
+object SunriseOrSunset {
+<<PK>> idSunriseOrSunsetApiKey : int
+valueWSSunriseOrSunsetMeasurement : double
+valueWSSunriseOrSunsetUnit : String
+valueWSSunriseOrSunsetInfo : String
+}
+
+@enduml

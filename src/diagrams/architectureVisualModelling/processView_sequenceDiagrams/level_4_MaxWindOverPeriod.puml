@@ -1,0 +1,152 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+participant "<<system>>\n:Client" as SH
+participant ":ApiMaxWindOverPeriod" as API
+participant ":WebControllerMaxWindOverPeriod" as Controller
+participant ":ServiceMaxWindOverPeriod" as Service
+participant ":FactoryMaxWindOverPeriod" as Factory
+participant ":RepositoryMaxWindOverPeriodSpringData" as Repository
+participant ":MaxWindOverPeriod" as Root
+participant ":IdMaxWindOverPeriod" as Id
+participant ":ValueWSMaxWindOverPeriod" as Vo
+participant ":DatabankWindSpeed" as DatabankWindSpeed
+participant ":DatabankWindDirection" as DatabankWindDirection
+participant "<<static>> Functions" as Functions
+
+autoactivate on
+autonumber
+
+title Level 4 - Process View. \nUse Case: Maximum wind speed and direction reading, over a period.
+
+SH -> API : GET /MaxWindOverPeriod\n?apiKey=apiKeyValue&latitude=latitudeValue\n&longitude=longitudeValue&hourStart=hourStartValue\n&hourEnd=hourEndValue
+activate SH
+
+API -> Controller : getMaxWindOverPeriod\n(apiKey, latitude, longitude, hourStart, hourEnd)
+
+Controller -> Service : getMaxWindOverPeriod\n(apiKey, latitude, longitude, hourStart, hourEnd)
+
+Service -> Factory : createMaxWindOverPeriod\n(apiKey, latitude, longitude, hourStart, hourEnd)
+
+Factory -> Root ** : <<create>> MaxWindOverPeriod\n(apiKey, latitude, longitude, hourStart, hourEnd)
+activate Root
+
+Root -> Functions : <<static>> isInvalidGpsCoordinates\n(latitude, longitude)
+return false
+
+Root -> Id ** : <<create>> IdMaxWindOverPeriod\n(apiKey)
+activate Id
+Id -> Id : <<static>> isInvalidArguments\n(apiKey)
+note right
+apiKey must be an integer
+within parameterized boundaries.
+end note
+return false
+return idMaxWindOverPeriod
+
+Root -> Vo ** : <<create>> ValueWSMaxWindOverPeriod\n(hourStart, hourEnd)
+activate Vo
+Vo -> Vo : <<static>> isInvalidArguments\n(hourStart, hourEnd)
+note right
+hourStart and hourEnd
+must be integers between
+within parameterized boundaries,
+usually between 0 and 23, inclusive,
+and hourEnd ≥ hourStart.
+end note
+return false
+
+Vo -> DatabankWindSpeed ** : <<create>>\nDatabankWindSpeed()
+activate DatabankWindSpeed
+DatabankWindSpeed -> DatabankWindSpeed : <<static>> \ntableBuilder()
+
+DatabankWindSpeed -> Functions : <<static>> \nimportWindSpeed()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+Functions -> Functions : <<static>> \nstringToDouble(strings)
+return doubles
+return doubles
+
+return windSpeedTable
+DatabankWindSpeed --> Vo : databankWindSpeed
+
+Vo -> Vo : <<static>> measurementLookup\n(databankWindSpeed, hourStart, hourEnd)
+
+loop hourStart, hourEnd
+Vo -> DatabankWindSpeed : getWindSpeedData(hour)
+DatabankWindSpeed --> Vo : measurement
+end
+
+return maxMeasurement
+
+Vo -> DatabankWindDirection ** : <<create>> \nDatabankWindDirection()
+activate DatabankWindDirection
+DatabankWindDirection -> DatabankWindDirection : <<static>> \ntableBuilder()
+
+DatabankWindDirection -> Functions : <<static>> \nimportWindDirection()
+Functions -> Functions : <<static>> \nreadTextFile(path)
+return strings
+return strings
+
+return windDirectionTable
+DatabankWindDirection --> Vo : databankWindDirection
+
+Vo -> Vo : <<static>> infoLookup(databankWindDirection,\n databankWindSpeed, hourStart, hourEnd,\n maxMeasurement)
+
+loop hourStart, hourEnd
+Vo -> DatabankWindSpeed : getWindSpeedData(hour)
+note left
+There may be multiple
+wind directions for a given
+maximum wind speed.
+end note
+DatabankWindSpeed --> Vo : measurement
+alt abs(measurement - maxMeasurement) < 0.01
+Vo -> DatabankWindDirection : getWindDirectionData(hour)
+DatabankWindDirection --> Vo : info
+end
+end
+destroy DatabankWindDirection
+destroy DatabankWindSpeed
+
+return concatenatedInfo
+
+return valueWSMaxWIndOverPeriod
+
+Root --> Factory : maxWindOverPeriod
+Factory --> Service : maxWindOverPeriod
+Service -> Repository : save(maxWindOverPeriod)
+note left
+If the apiKey is already
+assigned, the aggregate stored
+in the repository is replaced.
+end note
+
+Repository -> Repository : domainToDataModel\n(maxWindOverPeriod)
+note right
+This step is simplified.
+end note
+return maxWindOverPeriodDataModel
+
+Repository --> Service : true
+
+Service -> Root : getValueWS()
+return valueWSMaxWindOverPeriod
+
+Service --> Controller : valueWSMaxWindOverPeriod
+
+Controller -> Controller : domainToDto\n(valueWSMaxWindOverPeriod)
+note right
+This step is simplified.
+end note
+return valueWSMaxWindOverPeriodDto
+
+Controller -> Controller : <<static>> linkBuilder\n(valueWSMaxWindOverPeriodDto)
+return valueWSMaxWindOverPeriodDto
+
+return valueWSMaxWindOverPeriodDto
+
+return {"measurement" : maxMeasurement, "unit" : unit,\n "info" : concatenatedInfo, "links" : links}
+deactivate SH
+
+@enduml

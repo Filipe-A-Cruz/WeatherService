@@ -1,0 +1,100 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+title Level 3 - Logical View.
+
+'left to right direction
+
+component "<<system>>\n:WeatherService" as WeatherService {
+
+    package "Frameworks & Drivers" {
+        component ":Routing" as Routing
+        component ":DatabaseDriver" as DatabaseDriver
+    }
+
+    interface "Controller API" as ControllerAPI
+    interface "DatabaseDriver API" as DatabaseDriverAPI
+
+    package "Interface Adapters" {
+        component ":WebController" as WebController
+        component ":RepositorySpringData" as RepositorySpringData
+    }
+
+    interface "Mapper API" as MapperAPI
+    component ":Mapper" as Mapper
+    note right
+    Including DTOs.
+    end note
+    interface "DTO API" as DTOAPI
+
+    component ":DataModel" as DataModel
+    interface "Data Model API" as DataModelAPI
+
+    package "Application Business Rules" {
+        component ":Service" as Service
+        note left
+        Application services.
+        end note
+    }
+
+    package "Enterprise Business Rules" {
+        component ":Domain" as Domain
+
+    }
+
+    component ":Utils" as Utils
+    interface "Utils API" as UtilsAPI
+
+    interface "Service API" as ServiceAPI
+    interface "Domain API" as DomainAPI
+    interface "VO API" as VOAPI
+    interface "Repository API" as RepositoryAPI
+
+    portin " " as WeatherServiceRESTAPIPort
+    portout " " as FilesystemAPIPort
+    portin " " as DatabaseAPIPort
+}
+
+interface "WeatherService REST API" as WeatherServiceRESTAPI
+interface "File system API" as FilesystemAPI
+interface "Database API" as DatabaseAPI
+
+WeatherServiceRESTAPIPort -up- WeatherServiceRESTAPI
+Routing #--up- WeatherServiceRESTAPIPort
+FilesystemAPIPort -right-( FilesystemAPI
+Domain #--right-- FilesystemAPIPort
+DatabaseAPIPort -up-( DatabaseAPI
+DatabaseDriver #--up- DatabaseAPIPort
+
+DatabaseDriver --down- DatabaseDriverAPI
+DatabaseDriver --down-( DataModelAPI
+RepositorySpringData --up-( DatabaseDriverAPI
+
+WebController --up- ControllerAPI
+Routing --down-( ControllerAPI
+Routing --down-( DTOAPI
+WebController --down-( ServiceAPI
+WebController --down-( MapperAPI
+
+Mapper --up- MapperAPI
+Mapper --up- DTOAPI
+Mapper --down-( VOAPI
+
+Service --up- ServiceAPI
+Service --up-( RepositoryAPI
+Service --down-( DomainAPI
+
+RepositorySpringData --down- RepositoryAPI
+RepositorySpringData --down-( DataModelAPI
+
+Domain --up- DomainAPI
+Domain --up- VOAPI
+Domain --left-( UtilsAPI
+
+DataModel --up- DataModelAPI
+DataModel --down-( DomainAPI
+DataModel --down-( VOAPI
+
+Utils --right- UtilsAPI
+
+@enduml

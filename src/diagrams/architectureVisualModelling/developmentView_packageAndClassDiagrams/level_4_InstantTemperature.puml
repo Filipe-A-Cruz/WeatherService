@@ -1,0 +1,130 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+title Level 4 - Development View. \nUse Case: Instantaneous temperature reading.
+
+package controller {
+    package web {
+        object "WebControllerInstantTemperature" as Controller {
+        + getInstantTemperature(apiKey : int, latitude : double,\n longitude : double, hour : int) : ValueWSDto
+        - <<static>> linkBuilder(valueWSDto : ValueWSDto) : ValueWSDto
+        }
+    }
+}
+
+package service {
+    object "ServiceInstantTemperature" as Service {
+    + getInstantTemperature(apiKey : int, latitude : double,\n longitude : double, hour : int) : ValueWSDto
+    }
+
+    object "FactoryInstantTemperature" as Factory {
+    + createInstantTemperature(apiKey : int, latitude : double,\n longitude : double, hour : int) : AggregateRoot
+    }
+}
+
+package domain {
+    package instant_temperature {
+        package "<<Aggregate>> InstantTemperature" {
+            object "<<Root>> InstantTemperature" as Root {
+            + <<constructor>> InstantTemperature(apiKey : int,\n latitude : double, longitude : double, hour : int)
+            - <<static>> isInvalidArguments\n(latitude : double, longitude : double) : boolean
+            + getId() : DomainId
+            + getValueWS() : ValueWS
+            }
+
+            object "<<VO>> ValueWSInstantTemperature" as ValueWS {
+            - measurement : double
+            - unit : String
+            - info : String
+            + <<constructor>> ValueWSInstantTemperature(hour : int)
+            - <<static>> isInvalidArguments(hour : int) : boolean
+            - <<static>> measurementLookup\n(databankTemperature: DatabankTemperature, hour : int) : double
+            + getMeasurement() : double
+            + getUnit() : String
+            + getInfo() : String
+            }
+
+            object "<<VO>> IdInstantTemperature" as Id {
+            - apiKey : int
+            + <<constructor>> IdInstantTemperature(apiKey : int)
+            - <<static>> isInvalidArguments(apiKey : int) : boolean
+            + apiKey() : int
+            }
+        }
+    }
+}
+
+package mapper {
+    object "ValueWSMapper" as ValueMapper {
+    + valueWSToDto(valueWS : ValueWS) : ValueWSDto
+    }
+
+    object "<<VO>> ValueWSDto" as ValueDto {
+    - measurement : double
+    - unit : String
+    - info : String
+    + <<constructor>> ValueDto\n(measurement : double, unit : String, info : String)
+    + getMeasurement() : double
+    + getUnit() : String
+    + getInfo() : String
+    }
+}
+
+package utils {
+    object "DatabankTemperature" as DatabankTemperature {
+    - temperatureTable : double[]
+    + <<constructor>> DatabankTemperature()
+    - <<static>> tableBuilder() : double[]
+    + getTemperatureData(hour : int) : double
+    }
+
+    object "<<static>> Functions" as Functions {
+    + <<static>> importTemperature() : double[]
+    - <<static>> readTextFile(path : Path) : String[]
+    - <<static>> stringToDouble(strings : String[]) : double[]
+    }
+}
+
+package persistence {
+    package datamodel {
+        object "InstantTemperatureDataModel" as DataModel {
+        - idInstantTemperatureApiKey : int
+        - valueWSInstantTemperatureMeasurement : double
+        - valueWSInstantTemperatureUnit : String
+        - valueWSInstantTemperatureInfo : String
+        + <<constructor>> InstantTemperatureDataModel\n(instantTemperature : AggregateRoot)
+        }
+    }
+
+    package springdata {
+        object "RepositoryInstantTemperatureSpringData" as RepositorySpringData {
+        + save(instantTemperature : AggregateRoot) : boolean
+        }
+    }
+}
+
+Controller "1" *---> "1" Service
+Service "1" *--> "1" Factory
+
+Service ...> Root
+
+Controller "1" *---> "1" ValueMapper
+ValueMapper ..> ValueWS
+ValueMapper ..> ValueDto
+
+Factory ...> Root
+
+Root "1" *---> "1" Id
+Root "1" *--> "1" ValueWS
+
+ValueWS ...> DatabankTemperature
+DatabankTemperature ..> Functions
+
+RepositorySpringData ..> DataModel
+DataModel ...> Root
+DataModel ...> Id
+DataModel ...> ValueWS
+
+Service "1" *---> "1" RepositorySpringData
+
+@enduml
