@@ -1,30 +1,18 @@
 @startuml
 'https://plantuml.com/class-diagram
 
-package "<<Aggregate>> InstantTemperature" {
-    object "<<Root>> InstantTemperature" as InstantTemperature
+left to right direction
 
-    object "<<VO>> ValueWSInstantTemperature" as ValueWSInstantTemperature {
+package "<<Aggregate>> SunriseOrSunset" {
+    object "<<Root>> SunriseOrSunset" as SunriseOrSunset
+
+    object "<<VO>> ValueWSSunriseOrSunset" as ValueWSSunriseOrSunset {
     - measurement : double
     - unit : String
     - info : String
     }
 
-    object "<<VO>> IdInstantTemperature" as IdInstantTemperature {
-    - apiKey : int
-    }
-}
-
-package "<<Aggregate>> InstantWind" {
-    object "<<Root>> InstantWind" as InstantWind
-
-    object "<<VO>> ValueWSInstantWind" as ValueWSInstantWind {
-    - measurement : double
-    - unit : String
-    - info : String
-    }
-
-    object "<<VO>> IdInstantWind" as IdInstantWind {
+    object "<<VO>> IdSunriseOrSunset" as IdSunriseOrSunset {
     - apiKey : int
     }
 }
@@ -43,30 +31,44 @@ package "<<Aggregate>> MaxWindOverPeriod" {
     }
 }
 
-package "<<Aggregate>> SunriseOrSunset" {
-    object "<<Root>> SunriseOrSunset" as SunriseOrSunset
+package "<<Aggregate>> InstantWind" {
+    object "<<Root>> InstantWind" as InstantWind
 
-    object "<<VO>> ValueWSSunriseOrSunset" as ValueWSSunriseOrSunset {
+    object "<<VO>> ValueWSInstantWind" as ValueWSInstantWind {
     - measurement : double
     - unit : String
     - info : String
     }
 
-    object "<<VO>> IdSunriseOrSunset" as IdSunriseOrSunset {
+    object "<<VO>> IdInstantWind" as IdInstantWind {
     - apiKey : int
     }
 }
 
-InstantTemperature "1" --> "1" ValueWSInstantTemperature : has
-InstantTemperature "1" --> "1" IdInstantTemperature : has
+package "<<Aggregate>> InstantTemperature" {
+    object "<<Root>> InstantTemperature" as InstantTemperature
 
-InstantWind "1" --> "1" ValueWSInstantWind : has
-InstantWind "1" --> "1" IdInstantWind : has
+    object "<<VO>> ValueWSInstantTemperature" as ValueWSInstantTemperature {
+    - measurement : double
+    - unit : String
+    - info : String
+    }
+
+    object "<<VO>> IdInstantTemperature" as IdInstantTemperature {
+    - apiKey : int
+    }
+}
+
+SunriseOrSunset "1" --> "1" ValueWSSunriseOrSunset : has
+SunriseOrSunset "1" --> "1" IdSunriseOrSunset : has
 
 MaxWindOverPeriod "1" --> "1" ValueWSMaxWindOverPeriod : has
 MaxWindOverPeriod "1" --> "1" IdMaxWindOverPeriod : has
 
-SunriseOrSunset "1" --> "1" ValueWSSunriseOrSunset : has
-SunriseOrSunset "1" --> "1" IdSunriseOrSunset : has
+InstantWind "1" --> "1" ValueWSInstantWind : has
+InstantWind "1" --> "1" IdInstantWind : has
+
+InstantTemperature "1" --> "1" ValueWSInstantTemperature : has
+InstantTemperature "1" --> "1" IdInstantTemperature : has
 
 @enduml
