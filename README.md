@@ -1,7 +1,7 @@
 <h1>Weather Service - Sample for Recruiters</h1>
 
-This is a simple back-end web server which provides the client with simulated weather data via a RESTful API. 
-I am the sole developer of the server.
+This is a simple backend web server which provides the client with simulated weather data via a RESTful API. 
+The project was written in Java with the Spring Boot framework. I am the sole developer of the server.
 
 ---
 
