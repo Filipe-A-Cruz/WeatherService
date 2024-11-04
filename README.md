@@ -127,8 +127,8 @@ same static data set for all GPS coordinates. This data set was sampled from the
 
 ```hourValue``` is an integer between 0 and 23, inclusive.
 
-```hourStarValue``` and ```hourEndValue``` are also integers between 0 and 23, inclusive, with the caveat that
-```hourEndValue``` must be larger than or equal to ```hourStarValue```.
+```hourStartValue``` and ```hourEndValue``` are also integers between 0 and 23, inclusive, with the caveat that
+```hourEndValue``` must be larger than or equal to ```hourStartValue```.
 
 ```optionValue``` is a string, either ```sunrise``` or ```sunset```.
 
