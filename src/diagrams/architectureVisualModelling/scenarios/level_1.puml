@@ -1,0 +1,21 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+title Level 1 - Scenarios.
+
+left to right direction
+rectangle "<<system>>\nClient" as Client
+
+rectangle WeatherService {
+usecase "Instantaneous\ntemperature reading." as UC27
+usecase "Instantaneous wind\nspeed and direction reading." as UC28
+usecase "Maximum wind speed and\ndirection reading, over a period." as UC29
+usecase "Sunrise or sunset time reading." as UC38
+}
+
+Client --> UC27
+Client --> UC28
+Client --> UC29
+Client --> UC38
+
+@enduml

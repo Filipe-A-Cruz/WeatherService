@@ -30,9 +30,9 @@ The system shall be implemented using the Java programming language using a Test
 Development (TDD) approach. A minimum of 95% line and
 mutation coverage is required. Furthermore, automatic and regression tests must adhere to:
 
-- unit tests (with isolation) must be adopted for domain classes;
+- unit tests with isolation of collaborators must be adopted for domain aggregates;
 
-- integration tests (without isolation) must be adopted for controllers.
+- integration tests must be adopted for controllers.
 
 All code, comments and documentation will be in English.
 

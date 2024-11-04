@@ -22,7 +22,7 @@ component "<<system>>\n:WeatherService" as WeatherService {
 
     interface "Mapper API" as MapperAPI
     component ":Mapper" as Mapper
-    note right
+    note left
     Including DTOs.
     end note
     interface "DTO API" as DTOAPI
@@ -32,7 +32,7 @@ component "<<system>>\n:WeatherService" as WeatherService {
 
     package "Application Business Rules" {
         component ":Service" as Service
-        note left
+        note right
         Application services.
         end note
     }
@@ -61,8 +61,8 @@ interface "Database API" as DatabaseAPI
 
 WeatherServiceRESTAPIPort -up- WeatherServiceRESTAPI
 Routing #--up- WeatherServiceRESTAPIPort
-FilesystemAPIPort -right-( FilesystemAPI
-Domain #--right-- FilesystemAPIPort
+FilesystemAPIPort -down-( FilesystemAPI
+Utils #-down- FilesystemAPIPort
 DatabaseAPIPort -up-( DatabaseAPI
 DatabaseDriver #--up- DatabaseAPIPort
 

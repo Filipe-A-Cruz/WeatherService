@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/component-diagram
+
+title Level 2 - Physical View.
+
+node ":<u>WeatherService Application Server</u>" as WSAppServer {
+    component ":<u>WeatherService Application</u>" as WS {
+    }
+}
+
+node ":<u>WeatherService Database Server</u>" as WSDatabaseServer {
+    database ":<u>WeatherService Database</u>" as WSDatabase {
+    }
+}
+
+WSAppServer -down-> WSDatabaseServer : http/s
+
+@enduml
